@@ -5,7 +5,7 @@
 #!!!COLOR KEY only works without alpha channel(and somehow makes sense)
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#TODO: Implement scene transition
+#TODO: Insert scene id
 
 COLOR_RED   = (255, 0,   0,   255)
 COLOR_GREEN = (0,   180, 0,   255)
@@ -24,7 +24,7 @@ class GameManager(scene.Scene):
     def __init__(self):
         self.screen = None
         self.scenes = []
-        self.active_scene = 0
+        self.active_scene = 0 #postition in the self.scenes of the current active scene
         self.scr_dimen = (0, 0)
         self.main_loop_on = True
         self.time_elapsed = 0
@@ -65,7 +65,7 @@ class GameManager(scene.Scene):
                 if event.key == pygame.K_F1:
                     self.render_fps = not self.render_fps
                 if event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
-                    self.transition(0, 1)
+                    self.transition(self.locate_by_label("red_screen"))
                     self.main_loop_on = False
                     
                     
@@ -75,7 +75,7 @@ class GameManager(scene.Scene):
     def _process_pressed_buttons(self):
         pass
         
-    def main_loop(self):
+    def main_loop(self, start_act):#start_act is the starting active scene
         while True == self.main_loop_on:
             self.scenes[self.active_scene].draw()
             self._render_fps(self.clock.get_fps())
@@ -84,8 +84,8 @@ class GameManager(scene.Scene):
             self._process_events()
             self._process_pressed_buttons()
             
-    def transition(self, sc_pos_1, sc_pos_2):
-        temp_1 = self.scenes[sc_pos_1].surface
+    def transition(self, target_scene):
+        temp_1 = self.scenes[self.active_scene].surface
         temp_black = pygame.Surface((self.screen.get_size())).convert_alpha()
         
         #fade in
@@ -101,8 +101,8 @@ class GameManager(scene.Scene):
             alpha += 4
             
         alpha = 255
-        self.scenes[sc_pos_2].draw()
-        temp_2 = self.scenes[sc_pos_2].surface
+        self.scenes[target_scene].draw()
+        temp_2 = self.scenes[target_scene].surface
         
         #fade out
         while alpha >= 0:
@@ -126,15 +126,20 @@ class GameManager(scene.Scene):
     def scene_loop(self):
         self.main_loop()
         
+    def locate_by_label(self, label):
+        for i in range(len(self.scenes)):
+            if self.scenes[i].label == label:
+                return i
+        
     def draw():
         pass
         
 def main():
     manager_obj = GameManager()
     manager_obj.start_pygame((800, 600), "First game")
-    manager_obj.insert_scene(scene.Solid_Color(manager_obj, COLOR_WHITE))
-    manager_obj.insert_scene(scene.Solid_Color(manager_obj, COLOR_RED))
-    manager_obj.main_loop()
+    manager_obj.insert_scene(scene.Solid_Color(manager_obj, "white_screen", COLOR_WHITE))
+    manager_obj.insert_scene(scene.Solid_Color(manager_obj, "red_screen", COLOR_RED))
+    manager_obj.main_loop(0)
 
 if __name__ == "__main__":
     main()

@@ -2,8 +2,9 @@ from abc import ABCMeta, abstractmethod
 import pygame
 
 class Scene(metaclass = ABCMeta):
-    def __init__(self, manager):
+    def __init__(self, manager, label):
         self.manager = manager #reference to game manager
+        self.label = label
         self.draw_elems = []
         self.font = None
         self.active = False
@@ -29,9 +30,10 @@ class Scene(metaclass = ABCMeta):
     def scene_loop(self):
         pass
     
+    
 class Solid_Color(Scene):
-    def __init__(self, manager, color):
-        super().__init__(manager)
+    def __init__(self, manager, label, color):
+        super().__init__(manager, label)
         self.surface = pygame.Surface((self.manager.screen.get_size())).convert()
         self.surface.fill(color)
     
