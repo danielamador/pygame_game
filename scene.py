@@ -29,11 +29,11 @@ class Scene(metaclass = ABCMeta):
     def scene_loop(self):
         pass
     
-class Test(Scene):
-    def __init__(self, manager):
+class Solid_Color(Scene):
+    def __init__(self, manager, color):
         super().__init__(manager)
         self.surface = pygame.Surface((self.manager.screen.get_size())).convert()
-        self.surface.fill((255, 255, 255))
+        self.surface.fill(color)
     
     def draw(self):
         self.manager.screen.blit(self.surface, (0,0))
