@@ -5,8 +5,8 @@
 #!!!COLOR KEY only works without alpha channel(and somehow makes sense)
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-#TODO: Insert scene id
-
+#TODO: Need to do some modelling in loop scene shifting. And in all the classes and communicating methods so far
+#      This surely needs some organization
 COLOR_RED   = (255, 0,   0,   255)
 COLOR_GREEN = (0,   180, 0,   255)
 COLOR_BLUE  = (0,   0,   255, 255)
@@ -25,6 +25,7 @@ class GameManager(scene.Scene):
         self.screen = None
         self.scenes = []
         self.active_scene = 0 #postition in the self.scenes of the current active scene
+        
         self.scr_dimen = (0, 0)
         self.main_loop_on = True
         self.time_elapsed = 0
@@ -55,6 +56,7 @@ class GameManager(scene.Scene):
     def _process_events(self):
         #print("Event: ", self.main_loop_on)
         event_queue = pygame.event.get() 
+        self.scenes[self.active_scene]._process_events(event_queue)
         for event in event_queue:
             #print(event)
             if event.type == pygame.QUIT:
@@ -65,7 +67,6 @@ class GameManager(scene.Scene):
                 if event.key == pygame.K_F1:
                     self.render_fps = not self.render_fps
                 if event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
-                    self.transition(self.locate_by_label("red_screen"))
                     self.main_loop_on = False
                     
                     
@@ -76,13 +77,21 @@ class GameManager(scene.Scene):
         pass
         
     def main_loop(self, start_act):#start_act is the starting active scene
+        self.active_scene = start_act
+        inact_mess = None
+        
         while True == self.main_loop_on:
             self.scenes[self.active_scene].draw()
             self._render_fps(self.clock.get_fps())
             pygame.display.flip()
             self.time_elapsed += self.clock.tick(60)
-            self._process_events()
+            next_scene = self._process_events()
             self._process_pressed_buttons()
+            inact_mess = self.scenes[self.active_scene].ask_inactivated()
+            #print(inact_mess)
+            if inact_mess != None:
+                self.transition(self.locate_by_label(inact_mess))
+                self.active_scene = self.locate_by_label(inact_mess)
             
     def transition(self, target_scene):
         temp_1 = self.scenes[self.active_scene].surface
