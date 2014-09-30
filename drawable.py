@@ -14,10 +14,10 @@ class DrawableElement(metaclass = ABCMeta):
     def _process_pressed_buttons(self, pressed_list, scr_dimen):
         pass
     
-    def blit(self, screen):
-        screen.blit(self.surface, (self.x, self.y))
+    def blit(self, scene_surf):
+        scene_surf.blit(self.surface, (self.x, self.y))
     
-    def process_blink(self):
+    def process_blink(self, scene_surf):
         if True == self.alpha['fading']:
             self.alpha['alpha'] -= 5
         else:
@@ -35,28 +35,30 @@ class DrawableElement(metaclass = ABCMeta):
         self.color = (c[0], c[1], c[2], self.alpha['alpha'])
         #print(self.color)
         
-        self.pygame_draw_meth()
         
     @abstractmethod
-    def pygame_draw_meth(self):
+    def pygame_draw_meth(self, scene_surf):
         pass
 
 class Background(DrawableElement):
     def __init__(self, x, y, color, size):#size: tuple (w,h)
         super().__init__(x, y, color)
         self.surface = pygame.Surface(size)
-        self.surface.fill(self.color)
         self.surface = self.surface.convert()
+        self.color = color
+        self.surface.fill(self.color)
         
-    def pygame_draw_meth(self):
+    def pygame_draw_meth(self, scene_surf):
+        print(self.color)
         self.surface.fill(self.color)
-        self.surface = self.surface.convert()
+        #self.process_blink(scene_surf)
+        self.blit(scene_surf)
         
 class Circle(DrawableElement):
-    def __init__(self, x, y, color, radius):
+    def __init__(self, x, y, color, radius, scene_surf):
         super().__init__(x, y, color)
         self.radius = radius
-        self.pygame_draw_meth()
+        self.pygame_draw_meth(scene_surf)
         self.reverse_dir = [False, False] 
         
     def reset_alpha(self):
@@ -66,7 +68,7 @@ class Circle(DrawableElement):
         self.color = (c[0], c[1], c[2], self.alpha['alpha'])
         self.pygame_draw_meth()
         
-    def _process_pressed_buttons(self, pressed_list, scr_dimen):
+    def _process_pressed_buttons(self, pressed_list, scn_dimen):
         #print("circle.y:", self.y)
         #print("Pressed keys list:", pressed_list)
         if pressed_list[pygame.K_w] == True or pressed_list[pygame.K_UP]:
@@ -79,13 +81,13 @@ class Circle(DrawableElement):
             self.x += 8
         
         if self.x < 0: self.x = 0
-        elif self.x > scr_dimen[0] - 2 * self.radius:
-            self.x = scr_dimen[0] - 2 * self.radius
+        elif self.x > scn_dimen[0] - 2 * self.radius:
+            self.x = scn_dimen[0] - 2 * self.radius
         if self.y < 0: self.y = 0
-        elif self.y > scr_dimen[1] - 2 * self.radius:
-            self.y = scr_dimen[1] - 2 * self.radius
+        elif self.y > scn_dimen[1] - 2 * self.radius:
+            self.y = scn_dimen[1] - 2 * self.radius
     
-    def dull_animation(self, scr_dimen):
+    def dull_animation(self, scn_dimen):
         if self.reverse_dir[0] == False:
             self.x += 4
         else:
@@ -96,16 +98,16 @@ class Circle(DrawableElement):
         else:
             self.y -= 4
             
-        if self.x > scr_dimen[0] - 2 * self.radius:
-            self.x = scr_dimen[0]
+        if self.x > scn_dimen[0] - 2 * self.radius:
+            self.x = scn_dimen[0]
             self.reverse_dir[0] = True
         
         elif self.x < 0:
             self.x = 0
             self.reverse_dir[0] = False
         
-        if self.y > scr_dimen[1] - 2 * self.radius:
-            self.y = scr_dimen[1]
+        if self.y > scn_dimen[1] - 2 * self.radius:
+            self.y = scn_dimen[1]
             self.reverse_dir[1] = True
             
         elif self.y < 0:
@@ -114,13 +116,12 @@ class Circle(DrawableElement):
     
         #print(self.x, self.y)
     
-    def pygame_draw_meth(self):
-        self.surface = pygame.Surface((2 * self.radius, 2 * self.radius))
-        self.surface = self.surface.convert_alpha()
-        self.surface.fill(COLOR_TRANS)
+    def pygame_draw_meth(self, scene_surf):
+        self.surface = pygame.Surface((2 * self.radius, 2 * self.radius)).convert_alpha()
+        self.surface.fill((0, 0, 0, 0))
         pygame.draw.circle(self.surface, self.color, 
                           (self.radius, self.radius), self.radius)
-        print("Circle color: ", self.color)
+        self.blit(scene_surf)
         
 class Text(DrawableElement):
     def __init__(self, x, y, color, text):

@@ -7,10 +7,11 @@
 
 #TODO: Need to do some modelling in loop scene shifting. And in all the classes and communicating methods so far
 #      This surely needs some organization
+#      Scene.surface attribute and communication with drawable.pygame_draw_meth
 COLOR_RED   = (255, 0,   0,   255)
 COLOR_GREEN = (0,   180, 0,   255)
 COLOR_BLUE  = (0,   0,   255, 255)
-COLOR_WHITE = (255, 255, 255)
+COLOR_WHITE = (255, 255, 255, 255)
 COLOR_GREY  = (128, 128, 128, 255)
 COLOR_PCK   = (255, 0,   128)
 COLOR_TRANS = (0,   0,   0,   0)
@@ -50,7 +51,7 @@ class GameManager(scene.Scene):
         if self.render_fps:
             text = "FPS: " + str(int(fps))
             fw, fh = self.font.size(text)
-            surface = self.font.render(text, True, COLOR_GREEN)
+            surface = self.font.render(text, False, COLOR_GREEN)#.convert_alpha()
             self.screen.blit(surface, (0, 0))
         
     def _process_events(self):
@@ -78,7 +79,7 @@ class GameManager(scene.Scene):
         
     def main_loop(self, start_act):#start_act is the starting active scene
         self.active_scene = start_act
-        inact_mess = None
+        deact_mess = None#the message received when a scene is deactivated
         
         while True == self.main_loop_on:
             self.scenes[self.active_scene].draw()
@@ -87,11 +88,12 @@ class GameManager(scene.Scene):
             self.time_elapsed += self.clock.tick(60)
             next_scene = self._process_events()
             self._process_pressed_buttons()
-            inact_mess = self.scenes[self.active_scene].ask_inactivated()
+            deact_mess = self.scenes[self.active_scene].ask_deactivated()
             #print(inact_mess)
-            if inact_mess != None:
-                self.transition(self.locate_by_label(inact_mess))
-                self.active_scene = self.locate_by_label(inact_mess)
+            print(deact_mess, "pos:", self.locate_by_label(deact_mess))
+            if deact_mess != None:
+                self.transition(self.locate_by_label(deact_mess))
+                self.active_scene = self.locate_by_label(deact_mess)
             
     def transition(self, target_scene):
         temp_1 = self.scenes[self.active_scene].surface
@@ -146,8 +148,9 @@ class GameManager(scene.Scene):
 def main():
     manager_obj = GameManager()
     manager_obj.start_pygame((800, 600), "First game")
-    manager_obj.insert_scene(scene.Solid_Color(manager_obj, "white_screen", COLOR_WHITE))
-    manager_obj.insert_scene(scene.Solid_Color(manager_obj, "red_screen", COLOR_RED))
+    manager_obj.insert_scene(scene.White_Screen(manager_obj))
+    manager_obj.insert_scene(scene.Red_Screen(manager_obj))
+    #manager_obj.insert_scene()
     manager_obj.main_loop(0)
 
 if __name__ == "__main__":
